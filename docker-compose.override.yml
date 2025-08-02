@@ -1,0 +1,22 @@
+version: '3.8' # Versi harus sama dengan docker-compose.yml utama
+
+services:
+  booking_db-app:
+    volumes:
+      - ./booking_db:/var/www/html # Volume mounting untuk kode sumber booking_db
+
+  booking_db-nginx:
+    ports:
+      - "8000:80" # Port untuk booking_db
+    volumes:
+      - ./booking_db:/var/www/html # Volume mounting untuk kode sumber booking_db
+
+  room-service-app:
+    volumes:
+      - ./room-service:/var/www/html # Volume mounting untuk kode sumber room-service
+
+  room-service-nginx:
+    ports:
+      - "8001:80" # Port untuk room-service
+    volumes:
+      - ./room-service:/var/www/html # Volume mounting untuk kode sumber room-service

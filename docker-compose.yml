@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # BOOKING_DB STACK
+  booking_db-app:
+    build:
+      context: ./booking_db
+      dockerfile: Dockerfile
+    container_name: booking_db-app
+    working_dir: /var/www/html
+    volumes:
+      - ./booking_db:/var/www/html
+    depends_on:
+      - booking_db-db
+    networks:
+      - laravel
+
+  booking_db-nginx:
+    image: nginx:alpine
+    container_name: booking_db-nginx
+    ports:
+      - "8000:80" # Akses booking_db di port 8000
+    volumes:
+      - ./booking_db:/var/www/html
+      - ./booking_db/docker-compose/nginx/default.conf:/etc/nginx/conf.d/default.conf # Pastikan folder ini ada dan berisi default.conf
+    depends_on:
+      - booking_db-app
+    networks:
+      - laravel
+
+  booking_db-db:
+    image: postgres:15
+    container_name: booking_db-db
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: booking123
+    ports:
+      - "5435:5432" # Database booking_db diakses via port 5435 host
+    volumes:
+      - portal_booking_data:/var/lib/postgresql/data
+    networks:
+      - laravel
+
+  # ROOM SERVICE STACK
+  room-service-app:
+    build:
+      context: ./room-service
+      dockerfile: Dockerfile
+    container_name: room-service-app
+    working_dir: /var/www/html
+    volumes:
+      - ./room-service:/var/www/html
+    depends_on:
+      - room-service-db
+    networks:
+      - laravel
+
+  room-service-nginx:
+    image: nginx:alpine
+    container_name: room-service-nginx
+    ports:
+      - "8001:80" # Akses room-service di port 8001
+    volumes:
+      - ./room-service:/var/www/html
+      - ./room-service/nginx/conf.d:/etc/nginx/conf.d # Pastikan folder ini ada dan berisi default.conf
+    depends_on:
+      - room-service-app
+    networks:
+      - laravel
+
+  room-service-db:
+    image: postgres:15
+    container_name: room-service-db
+    environment:
+      POSTGRES_DB: ruangan_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: room123
+    ports:
+      - "5434:5432" # Database room-service diakses via port 5434 host
+    volumes:
+      - room_service_data:/var/lib/postgresql/data
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge # Pastikan ini ada jika belum ada
+
+volumes:
+  portal_booking_data:
+  room_service_data:
