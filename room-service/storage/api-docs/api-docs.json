@@ -1,0 +1,227 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Room-Service API Documentation",
+        "description": "Dokumentasi API untuk mengelola data ruangan.",
+        "contact": {
+            "email": "admin@arutala.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/rooms": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Mendapatkan daftar semua ruangan",
+                "description": "Mengambil daftar semua data ruangan yang tersedia.",
+                "operationId": "getRoomsList",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mendapatkan daftar ruangan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Room"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Membuat ruangan baru",
+                "description": "Menambahkan data ruangan baru ke database.",
+                "operationId": "createRoom",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RoomStoreRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Berhasil membuat ruangan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Room"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/rooms/{id}": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Mendapatkan detail satu ruangan",
+                "description": "Mengambil data ruangan berdasarkan ID.",
+                "operationId": "getRoomById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID ruangan",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mendapatkan detail ruangan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Room"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Ruangan tidak ditemukan"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Memperbarui data ruangan",
+                "description": "Memperbarui data ruangan berdasarkan ID.",
+                "operationId": "updateRoom",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID ruangan",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RoomStoreRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berhasil memperbarui data ruangan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Room"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Ruangan tidak ditemukan"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Menghapus ruangan",
+                "description": "Menghapus data ruangan dari database berdasarkan ID.",
+                "operationId": "deleteRoom",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID ruangan",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Ruangan berhasil dihapus"
+                    },
+                    "404": {
+                        "description": "Ruangan tidak ditemukan"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Room": {
+                "title": "Room",
+                "description": "Model data ruangan",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Ruang Serbaguna"
+                    },
+                    "capacity": {
+                        "type": "integer",
+                        "example": 50
+                    },
+                    "facilities": {
+                        "type": "string",
+                        "example": "AC, Proyektor"
+                    }
+                },
+                "type": "object"
+            },
+            "RoomStoreRequest": {
+                "title": "RoomStoreRequest",
+                "description": "Request body untuk membuat/memperbarui ruangan",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Ruang Serbaguna"
+                    },
+                    "capacity": {
+                        "type": "integer",
+                        "example": 50
+                    },
+                    "facilities": {
+                        "type": "string",
+                        "example": "AC, Proyektor"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Rooms",
+            "description": "Rooms"
+        }
+    ]
+}

@@ -26,23 +26,37 @@
             @csrf
 
             <div>
-                <label class="block font-medium text-sm text-gray-700">Pilih Ruangan</label>
-                <select name="room_id" required
+                <label for="room_id" class="block font-medium text-sm text-gray-700">Pilih Ruangan</label>
+                <select name="room_id" id="room_id" required
                     class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
                     <option value="">-- Pilih Ruangan --</option>
                     @foreach ($rooms as $room)
-                        <option value="{{ $room['id'] }}" {{ old('room_id') == $room['id'] ? 'selected' : '' }}>
+                        <option value="{{ $room['id'] }}" {{ old('room_id') == $room['id'] ? 'selected' : '' }}
+                            data-capacity="{{ $room['capacity'] }}"
+                            data-facilities="{{ $room['facilities'] }}">
                             {{ $room['name'] }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
+            {{-- Elemen baru untuk menampilkan detail ruangan --}}
+            <div id="room-details" class="p-4 bg-gray-50 rounded-lg shadow-inner" style="display: none;">
+                <p class="text-sm">
+                    <span class="font-semibold text-gray-600">Kapasitas:</span>
+                    <span id="room-capacity" class="text-gray-900"></span>
+                </p>
+                <p class="text-sm mt-2">
+                    <span class="font-semibold text-gray-600">Fasilitas:</span>
+                    <span id="room-facilities" class="text-gray-900"></span>
+                </p>
+            </div>
+
             <div>
-    <label class="block font-medium text-sm text-gray-700">Judul Booking</label>
-    <input type="text" name="title" value="{{ old('title') }}" required
-        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
-</div>
+                <label class="block font-medium text-sm text-gray-700">Judul Booking</label>
+                <input type="text" name="title" value="{{ old('title') }}" required
+                    class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+            </div>
 
             <div>
                 <label class="block font-medium text-sm text-gray-700">User ID</label>
@@ -73,6 +87,39 @@
             </div>
         </form>
     </div>
+
+    {{-- Script untuk menangani tampilan detail ruangan secara dinamis --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const roomSelect = document.getElementById('room_id');
+            const roomDetails = document.getElementById('room-details');
+            const roomCapacity = document.getElementById('room-capacity');
+            const roomFacilities = document.getElementById('room-facilities');
+
+            // Fungsi untuk menampilkan detail ruangan
+            function showRoomDetails() {
+                const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+                const capacity = selectedOption.getAttribute('data-capacity');
+                const facilities = selectedOption.getAttribute('data-facilities');
+
+                if (capacity && facilities) {
+                    roomCapacity.textContent = capacity;
+                    roomFacilities.textContent = facilities;
+                    roomDetails.style.display = 'block';
+                } else {
+                    roomDetails.style.display = 'none';
+                    roomCapacity.textContent = '';
+                    roomFacilities.textContent = '';
+                }
+            }
+
+            // Panggil fungsi saat halaman dimuat (untuk kasus old('room_id'))
+            showRoomDetails();
+
+            // Tambahkan event listener untuk perubahan pada dropdown
+            roomSelect.addEventListener('change', showRoomDetails);
+        });
+    </script>
 
 </body>
 </html>
