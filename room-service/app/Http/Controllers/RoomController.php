@@ -144,9 +144,15 @@ class RoomController extends Controller
      * )
      * )
      */
-    public function destroy($id)
-    {
-        Room::destroy($id);
-        return response()->json(null, 204);
-    }
+     public function destroy($id)
+{
+    // Cari ruangan berdasarkan ID, jika tidak ditemukan akan throw 404
+    $room = Room::findOrFail($id);
+
+    // Hapus ruangan dari database
+    $room->delete();
+
+    // Mengembalikan respons sukses (200) dengan pesan
+    return response()->json(['message' => 'Ruangan berhasil dihapus'], 200);
+}
 }
