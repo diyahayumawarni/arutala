@@ -15,18 +15,28 @@ class BookingController extends Controller
         return view('bookings.index', compact('bookings'));
     }
 
-    // Tampilkan form tambah booking
-    public function create()
+   // Tampilkan form tambah booking
+public function create()
 {
-    try {
-        $response = Http::get('http://room-service-nginx/api/rooms');
-        $rooms = $response->successful() ? $response->json() : [];
-    } catch (\Exception $e) {
-        $rooms = [];
+    // Ambil token dari file .env
+    $token = env('ROOM_SERVICE_TOKEN');
+
+    // Hapus blok try-catch sementara untuk melihat error yang sebenarnya
+    $response = Http::withToken($token)
+                      ->get(env('ROOM_SERVICE_URL') . '/api/rooms');
+
+    // Pastikan respons sukses sebelum mengambil JSON
+    if (!$response->successful()) {
+        // Jika tidak sukses, Laravel akan melempar exception di sini
+        // atau Anda bisa melempar exception kustom untuk debugging
+        $response->throw(); // Ini akan melempar exception jika status kode bukan 2xx
     }
+
+    $rooms = $response->json();
 
     return view('bookings.create', compact('rooms'));
 }
+
 
 
     // Tampilkan detail satu booking (fitur show)

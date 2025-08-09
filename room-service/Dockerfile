@@ -1,31 +1,42 @@
-FROM php:8.2-fpm
+# Stage 1: Build dependencies
+FROM composer:2.4 as builder
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    unzip \
-    curl \
-    libzip-dev \
-    zip \
-    git \
-    && docker-php-ext-install pdo pdo_pgsql
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --no-scripts --optimize-autoloader
 
-# Set working directory
+# Stage 2: Final image
+FROM php:8.2-fpm-alpine
+
 WORKDIR /var/www/html
 
-# Copy source code
-COPY . .
+# Install system dependencies, update apk, and install PHP extensions
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    bash \
+    oniguruma-dev \
+    postgresql-dev && \
+    docker-php-ext-install pdo pdo_pgsql gd exif opcache bcmath
 
-# Install Composer
-COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+# Copy composer from the builder stage to the final image
+COPY --from=builder /usr/bin/composer /usr/local/bin/composer
 
-# Install Laravel dependencies
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Copy application code and vendor from the builder stage
+COPY --from=builder /app /var/www/html
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
+# Set proper permissions for storage and bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Expose port
 EXPOSE 9000
 
+# Start PHP-FPM
 CMD ["php-fpm"]

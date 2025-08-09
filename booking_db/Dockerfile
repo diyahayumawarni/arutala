@@ -1,38 +1,42 @@
-# STAGE 1: "Bengkel" untuk membangun dependensi
-FROM composer:2.7 AS builder
-WORKDIR /app
-COPY composer.json composer.lock ./
-# Hapus --no-scripts agar Laravel bisa melakukan optimasi
-RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
-COPY . .
+# Stage 1: Build dependencies
+FROM composer:2.4 as builder
 
-# STAGE 2: "Showroom" atau image final yang bersih
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --no-scripts --optimize-autoloader
+
+# Stage 2: Final image
 FROM php:8.2-fpm-alpine
+
 WORKDIR /var/www/html
 
-# Instal dependensi sistem, TERMASUK NODEJS & NPM
-RUN apk add --no-cache \
-    nodejs \
-    npm \
-    postgresql-dev \
+# Install system dependencies, update apk, and install PHP extensions
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    git \
+    curl \
     libpng-dev \
+    libjpeg-turbo-dev \
     libzip-dev \
-    jpeg-dev \
-    freetype-dev \
-    oniguruma-dev
+    zip \
+    unzip \
+    bash \
+    oniguruma-dev \
+    postgresql-dev && \
+    docker-php-ext-install pdo pdo_pgsql gd exif opcache bcmath
 
-# Konfigurasi dan instal ekstensi gd yang lengkap
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd
+# Copy composer from the builder stage to the final image
+COPY --from=builder /usr/bin/composer /usr/local/bin/composer
 
-# Instal ekstensi PHP umum lainnya yang dibutuhkan Laravel
-RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath zip
+# Copy application code and vendor from the builder stage
+COPY --from=builder /app /var/www/html
 
-# Salin Composer executable agar bisa digunakan di dalam container
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Set proper permissions for storage and bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Salin hanya hasil akhir (kode & vendor) dari stage builder
-COPY --from=builder /app .
-RUN chown -R www-data:www-data /var/www/html
+# Expose port
 EXPOSE 9000
+
+# Start PHP-FPM
 CMD ["php-fpm"]
